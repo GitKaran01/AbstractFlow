@@ -1,6 +1,9 @@
+# =========================================================================
+# 1. BASE SYSTEM LAYER (Ubuntu/Debian Based PHP 8.2 FPM)
+# =========================================================================
 FROM php:8.2-fpm
 
-# 1. System dependencies ke sath explicit NGINX bhi install karo
+# System packages aur production Nginx core application package install karo
 RUN apt-get update && apt-get install -y \
     nginx \
     git \
@@ -12,29 +15,42 @@ RUN apt-get update && apt-get install -y \
     zip \
     && docker-php-ext-install pdo pdo_mysql mbstring zip
 
-# 2. Install Composer
+# =========================================================================
+# 2. DEPENDENCY MANAGEMENT LAYER (Composer Setup)
+# =========================================================================
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Configure setup application directory path
 WORKDIR /var/www
 
-# 3. Project files ko copy karo
+# Pure project folders aur code elements ko container memory grid me copy karo
 COPY . .
 
-# 4. PHP dependencies ko install karo
+# Production-ready vendors install optimization triggers
 RUN composer install --no-dev --optimize-autoloader
 
-# 5. Laravel public storage directory aur cache ke permissions correct karo
+# =========================================================================
+# 3. PERMISSIONS & WEBSERVER CONFIGURATION STACK
+# =========================================================================
+# Laravel dynamic storage elements aur folder nodes ke core permissions secure karo
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# 6. Nginx ki configuration file ko container mein copy karo (Step 2 mein hum ise banayenge)
+# Mapped centralized configuration profile inside container proxy nodes
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# 7. Render ke default port (80) ko expose karo
+# Render web component default routing port indicator exposure
 EXPOSE 80
 
-# 8. Container chalu hote hi PHP-FPM aur Nginx dono ko run karne ke liye script ko execute karo
+# =========================================================================
+# 4. ORCHESTRATION STARTUP HANDLING (Windows Line Ending Fix Included)
+# =========================================================================
+# Pipeline shell scripts target paths mapping setup
 COPY start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
+# 🔥 FOOLPROOF CRITICAL FIX: Windows CRLF (\r) invisible breaks clean automatic script
+RUN sed -i 's/\r$//' /usr/local/bin/start.sh
+
+# Master entrypoint orchestration command trigger sequence line
 CMD ["/usr/local/bin/start.sh"]
